@@ -14,8 +14,8 @@ import (
 )
 
 // ByFullOutput is used to sort output chunks for the case when
-// the send of two chunks to the channel block and thus may be received in
-// any order
+// the send of two chunks to the channel block and
+// thus may be received in any order
 type ByFullOutput []process.OutputChunk
 
 func (b ByFullOutput) Len() int {
