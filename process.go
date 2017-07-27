@@ -48,8 +48,8 @@ func (p *Process) Kill() error {
 	return nil
 }
 
-// GetOutputChannel returns a channel that passes OutputChunk as they occur
-// it will immediately send an OutputChunk with an empty chunk and the full output
+// GetOutputChannel returns a channel that passes OutputChunk as they occur.
+// It will immediately send an OutputChunk with an empty chunk and the full output
 // thus far. It also returns a function that when called closes the channel
 func (p *Process) GetOutputChannel() (chan OutputChunk, func()) {
 	id := uuid.NewV4().String()
@@ -109,7 +109,7 @@ func (p *Process) Wait() error {
 
 // WaitForCondition calls the given function with the latest chunk of output
 // and the full output until it returns true
-// // returns an error if it does not match after the given duration
+// returns an error if it does not match after the given duration
 func (p *Process) WaitForCondition(condition func(string, string) bool, duration time.Duration) error {
 	success := make(chan bool)
 	go p.waitForCondition(condition, success)
@@ -149,9 +149,6 @@ func (p *Process) log(reader io.Reader) {
 	scanner.Split(scanLinesOrPrompt)
 	for scanner.Scan() {
 		text := scanner.Text()
-		// Its important to lock the outputMutex before the onOutputFuncsMutex
-		// becuase the waitFor method locks outputMutex and then may or may not lock
-		// the onOutputFuncsMutex. We need to use the same order to avoid deadlock
 		p.mutex.Lock()
 		if p.Output != "" {
 			p.Output += "\n"
