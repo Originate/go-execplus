@@ -1,4 +1,4 @@
-package goprocess_test
+package execplus_test
 
 import (
 	. "github.com/onsi/ginkgo"
