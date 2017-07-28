@@ -1,4 +1,4 @@
-package process_test
+package goprocess_test
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	process "github.com/Originate/go-process"
+	"github.com/Originate/goprocess"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -16,7 +16,7 @@ import (
 // ByFullOutput is used to sort output chunks for the case when
 // the send of two chunks to the channel block and
 // thus may be received in any order
-type ByFullOutput []process.OutputChunk
+type ByFullOutput []goprocess.OutputChunk
 
 func (b ByFullOutput) Len() int {
 	return len(b)
@@ -30,20 +30,20 @@ func (b ByFullOutput) Less(i, j int) bool {
 
 var _ = Describe("Process", func() {
 	It("returns no errors when the process succeeds", func() {
-		p := process.NewProcess("./test_executables/passing")
+		p := goprocess.NewProcess("./test_executables/passing")
 		err := p.Run()
 		Expect(err).To(BeNil())
 	})
 
 	It("returns errors when the process fails", func() {
-		p := process.NewProcess("./test_executables/failing")
+		p := goprocess.NewProcess("./test_executables/failing")
 		err := p.Run()
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("exit status 1"))
 	})
 
 	It("captures output", func() {
-		p := process.NewProcess("./test_executables/passing")
+		p := goprocess.NewProcess("./test_executables/passing")
 		err := p.Run()
 		Expect(err).To(BeNil())
 		Expect(p.Output).To(Equal("output"))
@@ -53,7 +53,7 @@ var _ = Describe("Process", func() {
 		cwd, err := os.Getwd()
 		customDir := path.Join(cwd, "test_executables")
 		Expect(err).To(BeNil())
-		p := process.NewProcess("./print_cwd")
+		p := goprocess.NewProcess("./print_cwd")
 		p.SetDir(customDir)
 		err = p.Run()
 		Expect(err).To(BeNil())
@@ -61,7 +61,7 @@ var _ = Describe("Process", func() {
 	})
 
 	It("allows settings of the env variables", func() {
-		p := process.NewProcess("./test_executables/print_env")
+		p := goprocess.NewProcess("./test_executables/print_env")
 		p.SetEnv([]string{"MY_VAR=special"})
 		err := p.Run()
 		Expect(err).To(BeNil())
@@ -69,7 +69,7 @@ var _ = Describe("Process", func() {
 	})
 
 	It("allows killing long running processes", func() {
-		p := process.NewProcess("./test_executables/output_chunks")
+		p := goprocess.NewProcess("./test_executables/output_chunks")
 		err := p.Start()
 		Expect(err).To(BeNil())
 		time.Sleep(time.Second)
@@ -79,7 +79,7 @@ var _ = Describe("Process", func() {
 	})
 
 	It("allows waiting for long running processes", func() {
-		p := process.NewProcess("./test_executables/output_chunks")
+		p := goprocess.NewProcess("./test_executables/output_chunks")
 		err := p.Start()
 		Expect(err).To(BeNil())
 		err = p.Wait()
@@ -89,11 +89,11 @@ var _ = Describe("Process", func() {
 
 	Describe("output channel", func() {
 		It("allows access to output chunks (separated by newlines) via a channel", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			outputChannel, _ := p.GetOutputChannel()
 			err := p.Start()
 			Expect(err).To(BeNil())
-			chunks := []process.OutputChunk{
+			chunks := []goprocess.OutputChunk{
 				<-outputChannel,
 				<-outputChannel,
 				<-outputChannel,
@@ -101,7 +101,7 @@ var _ = Describe("Process", func() {
 				<-outputChannel,
 			}
 			sort.Sort(ByFullOutput(chunks))
-			Expect(chunks).To(Equal([]process.OutputChunk{
+			Expect(chunks).To(Equal([]goprocess.OutputChunk{
 				{Chunk: "", Full: ""},
 				{Chunk: "chunk 1", Full: "chunk 1"},
 				{Chunk: "special chunk 2", Full: "chunk 1\nspecial chunk 2"},
@@ -113,13 +113,13 @@ var _ = Describe("Process", func() {
 		})
 
 		It("sends the current status whenever the channel is added", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			time.Sleep(time.Second)
 			outputChannel, _ := p.GetOutputChannel()
 			chunk := <-outputChannel
-			Expect(chunk).To(Equal(process.OutputChunk{Chunk: "", Full: "chunk 1\nspecial chunk 2\nchunk 3"}))
+			Expect(chunk).To(Equal(goprocess.OutputChunk{Chunk: "", Full: "chunk 1\nspecial chunk 2\nchunk 3"}))
 			err = p.Kill()
 			Expect(err).To(BeNil())
 		})
@@ -127,7 +127,7 @@ var _ = Describe("Process", func() {
 
 	Describe("waitForCondition", func() {
 		It("returns nil if the condition passes within the timeout", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			err = p.WaitForCondition(func(chunk, full string) bool {
@@ -139,7 +139,7 @@ var _ = Describe("Process", func() {
 		})
 
 		It("returns error if the text is not seen within the timeout", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			err = p.WaitForCondition(func(chunk, full string) bool {
@@ -154,7 +154,7 @@ var _ = Describe("Process", func() {
 
 	Describe("waitForRegexp", func() {
 		It("returns nil if the text is seen within the timeout", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			isChunk := regexp.MustCompile(`special chunk \d`)
@@ -165,7 +165,7 @@ var _ = Describe("Process", func() {
 		})
 
 		It("returns error if the text is not seen within the timeout", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			isChunk := regexp.MustCompile(`other chunk \d`)
@@ -179,7 +179,7 @@ var _ = Describe("Process", func() {
 
 	Describe("waitForText", func() {
 		It("returns nil if the text is seen within the timeout", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			err = p.WaitForText("chunk 3", time.Second)
@@ -189,7 +189,7 @@ var _ = Describe("Process", func() {
 		})
 
 		It("returns error if the text is not seen within the timeout", func() {
-			p := process.NewProcess("./test_executables/output_chunks")
+			p := goprocess.NewProcess("./test_executables/output_chunks")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			err = p.WaitForText("chunk 4", time.Second)
@@ -200,7 +200,7 @@ var _ = Describe("Process", func() {
 		})
 
 		It("works for prompts (text that ends with a colon followed by a space)", func() {
-			p := process.NewProcess("./test_executables/prompt")
+			p := goprocess.NewProcess("./test_executables/prompt")
 			err := p.Start()
 			Expect(err).To(BeNil())
 			err = p.WaitForText("prompt: ", time.Second)

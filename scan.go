@@ -1,4 +1,4 @@
-package process
+package goprocess
 
 import "bytes"
 
