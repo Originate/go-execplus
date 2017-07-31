@@ -6,4 +6,6 @@ that allows you to:
 * wait for specific text to appear in the output
 * receive output chunks via a channel
 
+Requires Go 1.7 or above.
+
 See the tests for examples
