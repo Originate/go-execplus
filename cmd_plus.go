@@ -55,9 +55,8 @@ func (c *CmdPlus) Kill() error {
 // GetOutput returns the output thus far
 func (c *CmdPlus) GetOutput() string {
 	c.mutex.Lock()
-	result := c.output
-	c.mutex.Unlock()
-	return result
+	defer c.mutex.Unlock()
+	return c.output
 }
 
 // GetOutputChannel returns a channel that passes OutputChunk as they occur.
@@ -66,13 +65,13 @@ func (c *CmdPlus) GetOutput() string {
 func (c *CmdPlus) GetOutputChannel() (chan OutputChunk, func()) {
 	id := uuid.NewV4().String()
 	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	c.outputChannels[id] = make(chan OutputChunk)
 	c.sendOutputChunk(c.outputChannels[id], OutputChunk{Full: c.output})
-	c.mutex.Unlock()
 	return c.outputChannels[id], func() {
 		c.mutex.Lock()
+		defer c.mutex.Unlock()
 		delete(c.outputChannels, id)
-		c.mutex.Unlock()
 	}
 }
 
