@@ -14,12 +14,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-// OutputChunk represents a chunk of output for the CmdPlus
-type OutputChunk struct {
-	Chunk string
-	Full  string
-}
-
 // CmdPlus represents a more observable exec.Cmd command
 type CmdPlus struct {
 	Cmd       *exec.Cmd
