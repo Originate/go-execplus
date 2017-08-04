@@ -46,7 +46,7 @@ var _ = Describe("Process", func() {
 		cmdPlus := execplus.NewCmdPlus("./test_executables/passing")
 		err := cmdPlus.Run()
 		Expect(err).To(BeNil())
-		Expect(cmdPlus.Output).To(Equal("output"))
+		Expect(cmdPlus.GetOutput()).To(Equal("output"))
 	})
 
 	It("allows settings of the current working directory", func() {
@@ -57,7 +57,7 @@ var _ = Describe("Process", func() {
 		cmdPlus.SetDir(customDir)
 		err = cmdPlus.Run()
 		Expect(err).To(BeNil())
-		Expect(cmdPlus.Output).To(Equal(customDir))
+		Expect(cmdPlus.GetOutput()).To(Equal(customDir))
 	})
 
 	It("allows settings of the env variables", func() {
@@ -65,7 +65,7 @@ var _ = Describe("Process", func() {
 		cmdPlus.SetEnv([]string{"MY_VAR=special"})
 		err := cmdPlus.Run()
 		Expect(err).To(BeNil())
-		Expect(cmdPlus.Output).To(Equal("special"))
+		Expect(cmdPlus.GetOutput()).To(Equal("special"))
 	})
 
 	It("allows killing long running processes", func() {
@@ -75,7 +75,7 @@ var _ = Describe("Process", func() {
 		time.Sleep(time.Second)
 		err = cmdPlus.Kill()
 		Expect(err).To(BeNil())
-		Expect(cmdPlus.Output).NotTo(ContainSubstring("late chunk 4"))
+		Expect(cmdPlus.GetOutput()).NotTo(ContainSubstring("late chunk 4"))
 	})
 
 	It("allows waiting for long running processes", func() {
@@ -84,7 +84,7 @@ var _ = Describe("Process", func() {
 		Expect(err).To(BeNil())
 		err = cmdPlus.Wait()
 		Expect(err).To(BeNil())
-		Expect(cmdPlus.Output).To(ContainSubstring("late chunk 4"))
+		Expect(cmdPlus.GetOutput()).To(ContainSubstring("late chunk 4"))
 	})
 
 	Describe("output channel", func() {

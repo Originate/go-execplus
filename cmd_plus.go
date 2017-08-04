@@ -23,9 +23,9 @@ type OutputChunk struct {
 // CmdPlus represents a more observable exec.Cmd command
 type CmdPlus struct {
 	Cmd       *exec.Cmd
-	Output    string
 	StdinPipe io.WriteCloser
 
+	output         string
 	outputChannels map[string]chan OutputChunk
 	mutex          sync.Mutex // lock for updating Output and outputChannels
 	stdoutClosed   chan bool
@@ -52,6 +52,14 @@ func (c *CmdPlus) Kill() error {
 	return nil
 }
 
+// GetOutput returns the output thus far
+func (c *CmdPlus) GetOutput() string {
+	c.mutex.Lock()
+	result := c.output
+	c.mutex.Unlock()
+	return result
+}
+
 // GetOutputChannel returns a channel that passes OutputChunk as they occur.
 // It will immediately send an OutputChunk with an empty chunk and the full output
 // thus far. It also returns a function that when called closes the channel
@@ -59,7 +67,7 @@ func (c *CmdPlus) GetOutputChannel() (chan OutputChunk, func()) {
 	id := uuid.NewV4().String()
 	c.mutex.Lock()
 	c.outputChannels[id] = make(chan OutputChunk)
-	c.sendOutputChunk(c.outputChannels[id], OutputChunk{Full: c.Output})
+	c.sendOutputChunk(c.outputChannels[id], OutputChunk{Full: c.output})
 	c.mutex.Unlock()
 	return c.outputChannels[id], func() {
 		c.mutex.Lock()
@@ -108,10 +116,9 @@ func (c *CmdPlus) Start() error {
 
 // Wait waits for the CmdPlus to finish, can only be called after Start()
 func (c *CmdPlus) Wait() error {
-	err := c.Cmd.Wait()
 	<-c.stdoutClosed
 	<-c.stderrClosed
-	return err
+	return c.Cmd.Wait()
 }
 
 // WaitForCondition calls the given function with the latest chunk of output
@@ -124,7 +131,7 @@ func (c *CmdPlus) WaitForCondition(condition func(string, string) bool, duration
 	case <-success:
 		return nil
 	case <-time.After(duration):
-		return fmt.Errorf("Timed out after %v, full output:\n%s", duration, c.Output)
+		return fmt.Errorf("Timed out after %v, full output:\n%s", duration, c.GetOutput())
 	}
 }
 
@@ -157,11 +164,11 @@ func (c *CmdPlus) log(reader io.Reader, closed chan bool) {
 	for scanner.Scan() {
 		text := scanner.Text()
 		c.mutex.Lock()
-		if c.Output != "" {
-			c.Output += "\n"
+		if c.output != "" {
+			c.output += "\n"
 		}
-		c.Output += text
-		outputChunk := OutputChunk{Chunk: text, Full: c.Output}
+		c.output += text
+		outputChunk := OutputChunk{Chunk: text, Full: c.output}
 		for _, outputChannel := range c.outputChannels {
 			c.sendOutputChunk(outputChannel, outputChunk)
 		}
