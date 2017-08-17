@@ -60,8 +60,8 @@ func (c *CmdPlus) GetOutputChannel() (chan OutputChunk, func()) {
 	id := uuid.NewV4().String()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.outputChannels[id] = make(chan OutputChunk)
-	c.sendOutputChunk(c.outputChannels[id], OutputChunk{Full: c.output})
+	c.outputChannels[id] = make(chan OutputChunk, 2)
+	c.outputChannels[id] <- OutputChunk{Full: c.output}
 	return c.outputChannels[id], func() {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
@@ -163,17 +163,11 @@ func (c *CmdPlus) log(reader io.Reader, closed chan bool) {
 		c.output += text
 		outputChunk := OutputChunk{Chunk: text, Full: c.output}
 		for _, outputChannel := range c.outputChannels {
-			c.sendOutputChunk(outputChannel, outputChunk)
+			outputChannel <- outputChunk
 		}
 		c.mutex.Unlock()
 	}
 	closed <- true
-}
-
-func (c *CmdPlus) sendOutputChunk(outputChannel chan OutputChunk, outputChunk OutputChunk) {
-	go func() {
-		outputChannel <- outputChunk
-	}()
 }
 
 func (c *CmdPlus) waitForCondition(condition func(string, string) bool, success chan<- bool) {
