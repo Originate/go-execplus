@@ -21,7 +21,7 @@ type CmdPlus struct {
 
 	output         string
 	outputChannels map[string]chan OutputChunk
-	mutex          sync.Mutex // lock for updating Output and outputChannels
+	mutex          sync.RWMutex // lock for updating output and outputChannels
 	stdoutClosed   chan bool
 	stderrClosed   chan bool
 }
@@ -30,7 +30,6 @@ type CmdPlus struct {
 func NewCmdPlus(commandWords ...string) *CmdPlus {
 	p := &CmdPlus{
 		Cmd:            exec.Command(commandWords[0], commandWords[1:]...), //nolint gas
-		mutex:          sync.Mutex{},
 		outputChannels: map[string]chan OutputChunk{},
 		stdoutClosed:   make(chan bool),
 		stderrClosed:   make(chan bool),
@@ -48,8 +47,8 @@ func (c *CmdPlus) Kill() error {
 
 // GetOutput returns the output thus far
 func (c *CmdPlus) GetOutput() string {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 	return c.output
 }
 
