@@ -104,7 +104,7 @@ func (c *CmdPlus) Start() error {
 	stderrScanner := bufio.NewScanner(stderrPipe)
 	defer func() {
 		// Start scanning for output chunks after the command has started
-		// in order to avoid a race cndition around the stdout file descriptor
+		// in order to avoid a race condition around the stdout file descriptor
 		// between scanning and c.Cmd.Start()
 		go func() {
 			c.scanForOutputChunks(stdoutScanner, c.stdoutClosed)
