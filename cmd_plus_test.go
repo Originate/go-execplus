@@ -61,7 +61,7 @@ var _ = Describe("Process", func() {
 
 	It("allows settings of the env variables", func() {
 		cmdPlus := execplus.NewCmdPlus("./test_executables/print_env")
-		cmdPlus.SetEnv([]string{"MY_VAR=special"})
+		cmdPlus.AppendEnv([]string{"MY_VAR=special"})
 		err := cmdPlus.Run()
 		Expect(err).To(BeNil())
 		Expect(cmdPlus.GetOutput()).To(Equal("special"))
