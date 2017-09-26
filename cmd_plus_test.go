@@ -12,21 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// ByFullOutput is used to sort output chunks for the case when
-// the send of two chunks to the channel block and
-// thus may be received in any order
-type ByFullOutput []execplus.OutputChunk
-
-func (b ByFullOutput) Len() int {
-	return len(b)
-}
-func (b ByFullOutput) Swap(i, j int) {
-	b[i], b[j] = b[j], b[i]
-}
-func (b ByFullOutput) Less(i, j int) bool {
-	return len(b[i].Full) < len(b[j].Full)
-}
-
 var _ = Describe("Process", func() {
 	It("returns no errors when the process succeeds", func() {
 		cmdPlus := execplus.NewCmdPlus("./test_executables/passing")
