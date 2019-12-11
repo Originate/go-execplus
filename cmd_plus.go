@@ -60,7 +60,12 @@ func (c *CmdPlus) GetOutput() string {
 // It will immediately send an OutputChunk with an empty chunk and the full output
 // thus far. It also returns a function that when called closes the channel
 func (c *CmdPlus) GetOutputChannel() (chan OutputChunk, func()) {
-	id := uuid.NewV4().String()
+	idv4, err := uuid.NewV4()
+	if err != nil {
+		fmt.Printf("cannot create new UUID: %v", err)
+		os.Exit(1)
+	}
+	id := idv4.String()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.outputChannels[id] = make(chan OutputChunk)
