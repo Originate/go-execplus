@@ -5,18 +5,20 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"testing"
 	"time"
 
 	execplus "github.com/Originate/go-execplus"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
+
+func TestProcess(t *testing.T) {
+	cmdPlus := execplus.NewCmdPlus("./test_executables/passing")
+	err := cmdPlus.Run()
+	assert.Nil(t, err)
+}
 
 var _ = Describe("Process", func() {
 	It("returns no errors when the process succeeds", func() {
-		cmdPlus := execplus.NewCmdPlus("./test_executables/passing")
-		err := cmdPlus.Run()
-		Expect(err).To(BeNil())
 	})
 
 	It("returns errors when the process fails", func() {
